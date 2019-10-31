@@ -1,72 +1,40 @@
-const express = require('express');
-const compression = require('compression');
-const helmet = require('helmet');
-const app = express();
+const express = require('express'),
+    es6Renderer = require('express-es6-template-engine'),
+    compression = require('compression'),
+    helmet = require('helmet'),
+    app = express();
 
 app.listen(3333, function(){
     console.log('listening on port 3333');
 });
 
+// Middleware
 app.use(compression());
 app.use(helmet());
 
-const data = {
-    powerRangers: [
-        {name: 'Jason', zord: 'T-Rex'},
-        {name: 'Billy', zord: 'Triceratops'}
-    ]
-};
+app.engine('html', es6Renderer);
+app.set('views', './views');
+app.set('view engine', 'html');
 
-const rootController = function(req, res) {
-    const snippet = `<h1>Hello World!</h1>`;
-    res.status(200).send(snippet).end();
+// Routes
+const rootController = require('./routes/index'),
+    allController = require('./routes/all'),
+    wpController = require('./routes/wp'),
+    personController = require('./routes/person'),
+    yearController = require('./routes/year'),
+    greetController = require('./routes/greet'),
+    catsController = require('./routes/cats'),
+    dogsController = require('./routes/dogs'),
+    catsAndDogsController = require('./routes/cats_and_dogs')
+    ;
 
-};
-
-app.get('/', rootController);
-
-app.get('/all', function(req, res){
-    let json = {
-        data
-    };
-    res.status(200).send(json).end();
-})
-
-app.get('/wp', function(req, res){
-    const { name } = req.query;
-    let snippet = `<h1>Hello ${name}</h1>`;
-    
-    if (!name) {
-        snippet = `<h1>No Name Provided</h1>`;
-        res.status(500).send(snippet).end();
-    }
-    res.status(200).send(snippet);
-});
-
-app.get('/year', function(req, res){
-    const {age} = req.query;
-    let yearBorn = 2019 - age;
-    res.send(`You were born in ${yearBorn}`);
-});
-
-app.get('/greet/:name', function(req, res){
-    let snippet = `<h1>Hello, ${req.params.name}!</h1>`;
-
-    res.status(200).send(snippet).end();
-})
-
-app.get('/cats', function(req, res){
-    const snippet = `<h1>Meow</h1>`;
-    res.status(200).send(snippet).end();
-});
-
-app.get('/dogs', function(req, res){
-    const snippet = `<h1>Woof</h1>`;
-    res.status(200).send(snippet).end();
-});
-
-app.get('/cats_and_dogs', function(req, res){
-    const snippet = `<h1>Living together</h1>`;
-    res.status(200).send(snippet).end();
-});
-debugger;
+// Express use the router that we've exported
+app.use('/', rootController);
+app.use('/all', allController);
+app.use('/wp', wpController);
+app.use('/person', personController);
+app.use('/year', yearController);
+app.use('/greet', greetController);
+app.use('/cats', catsController);
+app.use('/dogs', dogsController);
+app.use('/cats_and_dogs', catsAndDogsController);
